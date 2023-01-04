@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/user.dart';
 import 'loginscreen.dart';
+import 'ownerscreen.dart';
 import 'profilescreen.dart';
 
 // Main screen for the Homestay Raya application
@@ -24,8 +25,6 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         title: const Text("Homestay Raya"),
         actions: [
-          // IconButton(
-          //     onPressed: _loginButton, icon: const Icon(Icons.account_circle))
           verifyLogin(),
         ],
       ),
@@ -62,7 +61,10 @@ class _MainScreenState extends State<MainScreen> {
                 MaterialPageRoute(
                     builder: (content) => ProfileScreen(user: widget.user)));
           } else if (value == 2) {
-            
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (content) => OwnerScreen(user: widget.user)));
           } else if (value == 3) {
             _logoutUser();
           }

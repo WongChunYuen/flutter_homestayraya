@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/user.dart';
-import 'mainscreen.dart';
 
 // Profile screen for the Homestay Raya application
 class ProfileScreen extends StatefulWidget {
@@ -113,20 +112,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           labelText: 'Date register',
                         ),
                       ),
+                      const SizedBox(
+                        height: 1,
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(
-                  height: 32,
-                ),
-                GestureDetector(
-                  onTap: _logoutUser,
-                  child: const Text('Log out',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 25,
-                        fontWeight: FontWeight.bold,
-                      )),
                 ),
               ],
             ),
@@ -134,20 +124,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-  }
-
-  // Method that let user to log out
-  void _logoutUser() {
-    User user = User(
-        id: "0",
-        email: "unregistered",
-        name: "unregistered",
-        address: "na",
-        phone: "0123456789",
-        regdate: "0");
-    Navigator.pop(context);
-    Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (content) => MainScreen(user: user)));
   }
 
   // Method that save user preference
