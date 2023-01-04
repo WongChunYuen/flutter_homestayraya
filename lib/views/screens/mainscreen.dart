@@ -24,25 +24,69 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         title: const Text("Homestay Raya"),
         actions: [
-          IconButton(
-              onPressed: _loginButton, icon: const Icon(Icons.account_circle))
+          // IconButton(
+          //     onPressed: _loginButton, icon: const Icon(Icons.account_circle))
+          verifyLogin(),
         ],
       ),
       body: const Center(child: Text("No search and book functions yet")),
     );
   }
 
-  // login method to let user go to login screen
-  void _loginButton() {
+  Widget verifyLogin() {
     if (widget.user.id.toString() == "0" &&
         widget.user.email.toString() == "unregistered") {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (content) => const LoginScreen()));
+      return IconButton(
+          onPressed: _loginButton, icon: const Icon(Icons.account_circle));
     } else {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (content) => ProfileScreen(user: widget.user)));
+      return PopupMenuButton<int>(
+        icon: const Icon(Icons.account_circle),
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 1,
+            child: Text('Profile'),
+          ),
+          const PopupMenuItem(
+            value: 2,
+            child: Text('My Homestay'),
+          ),
+          const PopupMenuItem(
+            value: 3,
+            child: Text('Logout'),
+          ),
+        ],
+        onSelected: (value) {
+          if (value == 1) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (content) => ProfileScreen(user: widget.user)));
+          } else if (value == 2) {
+            
+          } else if (value == 3) {
+            _logoutUser();
+          }
+        },
+      );
     }
+  }
+
+  // login method to let user go to login screen
+  void _loginButton() {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (content) => const LoginScreen()));
+  }
+
+  // Method that let user to log out
+  void _logoutUser() {
+    User user = User(
+        id: "0",
+        email: "unregistered",
+        name: "unregistered",
+        address: "na",
+        phone: "0123456789",
+        regdate: "0");
+    Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (content) => MainScreen(user: user)));
   }
 }
