@@ -38,7 +38,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
   final TextEditingController _hslocalEditingController =
       TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  var _lat, _lng, _imgNum = 1;
+  var _lat, _lng;
   int _index = 0;
 
   @override
@@ -63,40 +63,25 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
             const SizedBox(
               height: 16,
             ),
-            _imgNum == 0
-                ? GestureDetector(
-                    onTap: _selectImageDialog,
-                    child: Container(
-                      height: 200,
-                      width: 200,
-                      decoration: BoxDecoration(
-                          image: DecorationImage(
-                        image: _image == null
-                            ? AssetImage(pathAsset)
-                            : FileImage(_image!) as ImageProvider,
-                        fit: BoxFit.cover,
-                      )),
-                    ),
-                  )
-                : Center(
-                    child: SizedBox(
-                      height: 200, // card height
-                      child: PageView.builder(
-                          itemCount: 3,
-                          controller: PageController(viewportFraction: 0.7),
-                          onPageChanged: (int index) =>
-                              setState(() => _index = index),
-                          itemBuilder: (BuildContext context, int index) {
-                            if (index == 0) {
-                              return PageOne();
-                            } else if (index == 1) {
-                              return PageTwo();
-                            } else {
-                              return PageThree();
-                            }
-                          }),
-                    ),
-                  ),
+            Center(
+              child: SizedBox(
+                height: 200, // card height
+                child: PageView.builder(
+                    itemCount: 3,
+                    controller: PageController(viewportFraction: 0.7),
+                    onPageChanged: (int index) =>
+                        setState(() => _index = index),
+                    itemBuilder: (BuildContext context, int index) {
+                      if (index == 0) {
+                        return PageOne();
+                      } else if (index == 1) {
+                        return PageTwo();
+                      } else {
+                        return PageThree();
+                      }
+                    }),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(

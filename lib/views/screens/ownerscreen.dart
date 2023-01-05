@@ -255,17 +255,13 @@ class _OwnerScreenState extends State<OwnerScreen> {
           "${Config.server}/php/load_homestay.php?userid=${widget.user.id}"),
     )
         .then((response) {
-      // wait for response from the request
       if (response.statusCode == 200) {
-        //if statuscode OK
         var jsondata =
-            jsonDecode(response.body); //decode response body to jsondata array
+            jsonDecode(response.body); //decode response body that retrieved to jsondata array
         if (jsondata['status'] == 'success') {
-          //check if status data array is success
           var extractdata = jsondata['data']; //extract data from jsondata array
           if (extractdata['products'] != null) {
-            //check if  array object is not null
-            homestayList = <Product>[]; //complete the array object definition
+            homestayList = <Product>[]; 
             extractdata['products'].forEach((v) {
               //traverse products array list and add to the list object array homestayList
               homestayList.add(Product.fromJson(
@@ -284,7 +280,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
         titlecenter = "No Homestay Available"; //status code other than 200
         homestayList.clear(); //clear homestayList array
       }
-      setState(() {}); //refresh UI
+      setState(() {});
     });
   }
 }
