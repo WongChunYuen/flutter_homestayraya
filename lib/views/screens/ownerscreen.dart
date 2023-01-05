@@ -24,7 +24,7 @@ class OwnerScreen extends StatefulWidget {
 class _OwnerScreenState extends State<OwnerScreen> {
   var _lat, _lng;
   late Position _position;
-  List<Product> productList = <Product>[];
+  List<Product> homestayList = <Product>[];
   String titlecenter = "Loading...";
   var placemarks;
   final df = DateFormat('dd/MM/yyyy hh:mm a');
@@ -39,7 +39,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
 
   @override
   void dispose() {
-    productList = [];
+    homestayList = [];
     super.dispose();
   }
 
@@ -64,19 +64,18 @@ class _OwnerScreenState extends State<OwnerScreen> {
             ),
             const PopupMenuItem<int>(
               value: 1,
-              child: Text("My Order"),
+              child: Text("My Rental"),
             ),
           ];
         }, onSelected: (value) {
           if (value == 0) {
-            _gotoNewProduct();
-            // print("My account menu is selected.");
+            _gotoNewHomestay();
           } else if (value == 1) {
-            // print("Settings menu is selected.");
+            // Show my homestay rental
           }
         }),
       ]),
-      body: productList.isEmpty
+      body: homestayList.isEmpty
           ? Center(
               child: Text(titlecenter,
                   style: const TextStyle(
@@ -86,7 +85,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    "Your current products/services (${productList.length} found)",
+                    "Your current homestay (${homestayList.length} found)",
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.bold),
                   ),
@@ -97,33 +96,33 @@ class _OwnerScreenState extends State<OwnerScreen> {
                 Expanded(
                   child: GridView.count(
                     crossAxisCount: rowcount,
-                    children: List.generate(productList.length, (index) {
+                    children: List.generate(homestayList.length, (index) {
                       return Card(
                         elevation: 8,
                         child: InkWell(
                           onTap: () {
-                            _showDetails(index);
+                            // show details of the homestay
                           },
                           onLongPress: () {
-                            _deleteDialog(index);
+                            // delete the homestay
                           },
                           child: Column(children: [
                             const SizedBox(
                               height: 8,
                             ),
-                            Flexible(
-                              flex: 6,
-                              child: CachedNetworkImage(
-                                width: resWidth / 2,
-                                fit: BoxFit.cover,
-                                imageUrl:
-                                    "${Config.server}/assets/productimages/${productList[index].productId}.png",
-                                placeholder: (context, url) =>
-                                    const LinearProgressIndicator(),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.error),
-                              ),
-                            ),
+                            // Flexible(
+                            //   flex: 6,
+                            //   child: CachedNetworkImage(
+                            //     width: resWidth / 2,
+                            //     fit: BoxFit.cover,
+                            //     imageUrl:
+                            //         "${Config.server}/assets/homestayimages/${homestayList[index].productId}.png",
+                            //     placeholder: (context, url) =>
+                            //         const LinearProgressIndicator(),
+                            //     errorWidget: (context, url, error) =>
+                            //         const Icon(Icons.error),
+                            //   ),
+                            // ),
                             Flexible(
                                 flex: 4,
                                 child: Padding(
@@ -132,7 +131,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
                                     children: [
                                       Text(
                                         truncateString(
-                                            productList[index]
+                                            homestayList[index]
                                                 .productName
                                                 .toString(),
                                             15),
@@ -141,9 +140,9 @@ class _OwnerScreenState extends State<OwnerScreen> {
                                             fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                          "RM ${double.parse(productList[index].productPrice.toString()).toStringAsFixed(2)}"),
+                                          "RM ${double.parse(homestayList[index].productPrice.toString()).toStringAsFixed(2)}"),
                                       Text(df.format(DateTime.parse(
-                                          productList[index]
+                                          homestayList[index]
                                               .productDate
                                               .toString()))),
                                     ],
@@ -157,7 +156,6 @@ class _OwnerScreenState extends State<OwnerScreen> {
                 )
               ],
             ),
-      // drawer: MainMenuWidget(user: widget.user)
     );
   }
 
@@ -170,16 +168,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
     }
   }
 
-  Future<void> _gotoNewProduct() async {
-    // if (widget.user.id == "0") {
-    //   Fluttertoast.showToast(
-    //       msg: "Please login/register",
-    //       toastLength: Toast.LENGTH_SHORT,
-    //       gravity: ToastGravity.BOTTOM,
-    //       timeInSecForIosWeb: 1,
-    //       fontSize: 14.0);
-    //   return;
-    // }
+  Future<void> _gotoNewHomestay() async {
     ProgressDialog progressDialog = ProgressDialog(
       context,
       blur: 10,
@@ -196,7 +185,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
                   position: _position,
                   user: widget.user,
                   placemarks: placemarks)));
-      _loadProducts();
+      // _loadProducts();
     } else {
       Fluttertoast.showToast(
           msg: "Please allow the app to access the location",
@@ -259,21 +248,10 @@ class _OwnerScreenState extends State<OwnerScreen> {
   }
 
   void _loadProducts() {
-    if (widget.user.id == "0") {
-      //check if the user is registered or not
-      Fluttertoast.showToast(
-          msg: "Please register an account first", //Show toast
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          fontSize: 14.0);
-      return; //exit method if true
-    }
-    //if registered user, continue get request
     http
         .get(
       Uri.parse(
-          "${Config.server}/php/loadsellerproducts.php?userid=${widget.user.id}"),
+          "${Config.server}/php/load_homestay.php?userid=${widget.user.id}"),
     )
         .then((response) {
       // wait for response from the request
@@ -286,107 +264,26 @@ class _OwnerScreenState extends State<OwnerScreen> {
           var extractdata = jsondata['data']; //extract data from jsondata array
           if (extractdata['products'] != null) {
             //check if  array object is not null
-            productList = <Product>[]; //complete the array object definition
+            homestayList = <Product>[]; //complete the array object definition
             extractdata['products'].forEach((v) {
-              //traverse products array list and add to the list object array productList
-              productList.add(Product.fromJson(
-                  v)); //add each product array to the list object array productList
+              //traverse products array list and add to the list object array homestayList
+              homestayList.add(Product.fromJson(
+                  v)); //add each product array to the list object array homestayList
             });
             titlecenter = "Found";
           } else {
             titlecenter =
                 "No Homestay Available"; //if no data returned show title center
-            productList.clear();
+            homestayList.clear();
           }
         } else {
           titlecenter = "No Homestay Available";
         }
       } else {
         titlecenter = "No Homestay Available"; //status code other than 200
-        productList.clear(); //clear productList array
+        homestayList.clear(); //clear homestayList array
       }
       setState(() {}); //refresh UI
     });
-  }
-
-  Future<void> _showDetails(int index) async {
-    // Product product = Product.fromJson(productList[index].toJson());
-
-    // await Navigator.push(
-    //     context,
-    //     MaterialPageRoute(
-    //         builder: (content) => DetailsScreen(
-    //               product: product,
-    //               user: widget.user,
-    //             )));
-    // _loadProducts();
-  }
-
-  _deleteDialog(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20.0))),
-          title: Text(
-            "Delete ${truncateString(productList[index].productName.toString(), 15)}",
-            style: TextStyle(),
-          ),
-          content: const Text("Are you sure?", style: TextStyle()),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                "Yes",
-                style: TextStyle(),
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                _deleteProduct(index);
-              },
-            ),
-            TextButton(
-              child: const Text(
-                "No",
-                style: TextStyle(),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteProduct(index) {
-    try {
-      http.post(Uri.parse("${Config.server}/php/delete_product.php"), body: {
-        "productid": productList[index].productId,
-      }).then((response) {
-        var data = jsonDecode(response.body);
-        if (response.statusCode == 200 && data['status'] == "success") {
-          Fluttertoast.showToast(
-              msg: "Success",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              fontSize: 14.0);
-          _loadProducts();
-          return;
-        } else {
-          Fluttertoast.showToast(
-              msg: "Failed",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              timeInSecForIosWeb: 1,
-              fontSize: 14.0);
-          return;
-        }
-      });
-    } catch (e) {
-      print(e.toString());
-    }
   }
 }

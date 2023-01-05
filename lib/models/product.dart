@@ -6,6 +6,7 @@ class Product {
   String? productPrice;
   String? productAddress;
   String? productState;
+  String? productLocal;
   String? productLat;
   String? productLng;
   String? productDate;
@@ -18,6 +19,7 @@ class Product {
       this.productPrice,
       this.productAddress,
       this.productState,
+      this.productLocal,
       this.productLat,
       this.productLng,
       this.productDate});
@@ -30,6 +32,7 @@ class Product {
     productPrice = json['product_price'];
     productAddress = json['product_address'];
     productState = json['product_state'];
+    productLocal = json['product_local'];
     productLat = json['product_lat'];
     productLng = json['product_lng'];
     productDate = json['product_date'];
@@ -44,6 +47,7 @@ class Product {
     data['product_price'] = productPrice;
     data['product_address'] = productAddress;
     data['product_state'] = productState;
+    data['product_local'] = productLocal;
     data['product_lat'] = productLat;
     data['product_lng'] = productLng;
     data['product_date'] = productDate;

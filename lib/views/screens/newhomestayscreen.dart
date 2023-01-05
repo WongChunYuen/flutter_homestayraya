@@ -33,28 +33,27 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
       TextEditingController();
   final TextEditingController _hsaddrEditingController =
       TextEditingController();
-  final TextEditingController _prstateEditingController =
+  final TextEditingController _hsstateEditingController =
       TextEditingController();
-  final TextEditingController _prlocalEditingController =
+  final TextEditingController _hslocalEditingController =
       TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  var _lat, _lng;
+  var _lat, _lng, _imgNum = 1;
+  int _index = 0;
 
   @override
   void initState() {
     super.initState();
-    // _checkPermissionGetLoc();
     _lat = widget.position.latitude.toString();
     _lng = widget.position.longitude.toString();
-    //_getAddress();
-    _prstateEditingController.text =
+    _hsstateEditingController.text =
         widget.placemarks[0].administrativeArea.toString();
-    _prlocalEditingController.text = widget.placemarks[0].locality.toString();
+    _hslocalEditingController.text = widget.placemarks[0].locality.toString();
   }
 
   File? _image;
+  List<File> _imageList = [];
   var pathAsset = "assets/images/camera.png";
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,20 +63,40 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
             const SizedBox(
               height: 16,
             ),
-            GestureDetector(
-              onTap: _selectImageDialog,
-              child: Container(
-                height: 200,
-                width: 200,
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                  image: _image == null
-                      ? AssetImage(pathAsset)
-                      : FileImage(_image!) as ImageProvider,
-                  fit: BoxFit.cover,
-                )),
-              ),
-            ),
+            _imgNum == 0
+                ? GestureDetector(
+                    onTap: _selectImageDialog,
+                    child: Container(
+                      height: 200,
+                      width: 200,
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                        image: _image == null
+                            ? AssetImage(pathAsset)
+                            : FileImage(_image!) as ImageProvider,
+                        fit: BoxFit.cover,
+                      )),
+                    ),
+                  )
+                : Center(
+                    child: SizedBox(
+                      height: 200, // card height
+                      child: PageView.builder(
+                          itemCount: 3,
+                          controller: PageController(viewportFraction: 0.7),
+                          onPageChanged: (int index) =>
+                              setState(() => _index = index),
+                          itemBuilder: (BuildContext context, int index) {
+                            if (index == 0) {
+                              return PageOne();
+                            } else if (index == 1) {
+                              return PageTwo();
+                            } else {
+                              return PageThree();
+                            }
+                          }),
+                    ),
+                  ),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -162,7 +181,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
                                       ? "State"
                                       : null,
                               enabled: false,
-                              controller: _prstateEditingController,
+                              controller: _hsstateEditingController,
                               keyboardType: TextInputType.text,
                               decoration: const InputDecoration(
                                   labelText: 'States',
@@ -179,7 +198,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
                             validator: (val) => val!.isEmpty || (val.length < 3)
                                 ? "Locality"
                                 : null,
-                            controller: _prlocalEditingController,
+                            controller: _hslocalEditingController,
                             keyboardType: TextInputType.text,
                             decoration: const InputDecoration(
                                 labelText: 'Locality',
@@ -215,9 +234,9 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
   }
 
   void _newHomestayDialog() {
-    if (_image == null) {
+    if (_imageList.length < 2) {
       Fluttertoast.showToast(
-          msg: "Please insert image of your homestay",
+          msg: "Please insert THREE images",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 1,
@@ -316,7 +335,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
       _image = File(pickedFile.path);
       cropImage();
     } else {
-      print('No image selected.');
+      // print('No image selected.');
     }
   }
 
@@ -331,9 +350,8 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     if (pickedFile != null) {
       _image = File(pickedFile.path);
       cropImage();
-      //setState(() {});
     } else {
-      print('No image selected.');
+      // print('No image selected.');
     }
   }
 
@@ -342,15 +360,11 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
       sourcePath: _image!.path,
       aspectRatioPresets: [
         CropAspectRatioPreset.square,
-        // CropAspectRatioPreset.ratio3x2,
-        // CropAspectRatioPreset.original,
-        // CropAspectRatioPreset.ratio4x3,
-        // CropAspectRatioPreset.ratio16x9
       ],
       uiSettings: [
         AndroidUiSettings(
             toolbarTitle: 'Cropper',
-            toolbarColor: Colors.deepOrange,
+            toolbarColor: Colors.blueAccent,
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.original,
             lockAspectRatio: false),
@@ -362,6 +376,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     if (croppedFile != null) {
       File imageFile = File(croppedFile.path);
       _image = imageFile;
+      _imageList.add(_image!);
       setState(() {});
     }
   }
@@ -371,8 +386,8 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     String hsdesc = _hsdescEditingController.text;
     String hsprice = _hspriceEditingController.text;
     String hsaddr = _hsaddrEditingController.text;
-    String state = _prstateEditingController.text;
-    String local = _prlocalEditingController.text;
+    String state = _hsstateEditingController.text;
+    String local = _hslocalEditingController.text;
     String base64Image = base64Encode(_image!.readAsBytesSync());
 
     http.post(Uri.parse("${Config.server}/php/insert_homestay.php"), body: {
@@ -385,9 +400,12 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
       "local": local,
       "lat": _lat,
       "lon": _lng,
-      "image": base64Image
+      "image": base64Image,
+      "registerhomestay": "registerhomestay"
     }).then((response) {
+      print(response);
       var data = jsonDecode(response.body);
+      print(data);
       if (response.statusCode == 200 && data['status'] == "success") {
         Fluttertoast.showToast(
             msg: "Success",
@@ -395,7 +413,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 1,
             fontSize: 14.0);
-        Navigator.of(context).pop();
+        // Navigator.of(context).pop();
         return;
       } else {
         Fluttertoast.showToast(
@@ -407,5 +425,77 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
         return;
       }
     });
+  }
+
+  Widget PageOne() {
+    return Transform.scale(
+      scale: 1,
+      child: Card(
+          elevation: 6,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: GestureDetector(
+            onTap: _selectImageDialog,
+            child: Container(
+              height: 200,
+              width: 200,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                image: _imageList.length > 0
+                    ? FileImage(_imageList[0]) as ImageProvider
+                    : AssetImage(pathAsset),
+                fit: BoxFit.cover,
+              )),
+            ),
+          )),
+    );
+  }
+
+  Widget PageTwo() {
+    return Transform.scale(
+      scale: 1,
+      child: Card(
+          elevation: 6,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: GestureDetector(
+            onTap: _selectImageDialog,
+            child: Container(
+              height: 200,
+              width: 200,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                image: _imageList.length > 1
+                    ? FileImage(_imageList[1]) as ImageProvider
+                    : AssetImage(pathAsset),
+                fit: BoxFit.cover,
+              )),
+            ),
+          )),
+    );
+  }
+
+  Widget PageThree() {
+    return Transform.scale(
+      scale: 1,
+      child: Card(
+          elevation: 6,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: GestureDetector(
+            onTap: _selectImageDialog,
+            child: Container(
+              height: 200,
+              width: 200,
+              decoration: BoxDecoration(
+                  image: DecorationImage(
+                image: _imageList.length > 2
+                    ? FileImage(_imageList[2]) as ImageProvider
+                    : AssetImage(pathAsset),
+                fit: BoxFit.cover,
+              )),
+            ),
+          )),
+    );
   }
 }

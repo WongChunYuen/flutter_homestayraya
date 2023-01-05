@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../config.dart';
-import 'loginscreen.dart';
 
 // Register screen for the Homestay Raya application
 class RegistrationScreen extends StatefulWidget {
