@@ -110,19 +110,20 @@ class _OwnerScreenState extends State<OwnerScreen> {
                             const SizedBox(
                               height: 8,
                             ),
-                            // Flexible(
-                            //   flex: 6,
-                            //   child: CachedNetworkImage(
-                            //     width: resWidth / 2,
-                            //     fit: BoxFit.cover,
-                            //     imageUrl:
-                            //         "${Config.server}/assets/homestayimages/${homestayList[index].productId}.png",
-                            //     placeholder: (context, url) =>
-                            //         const LinearProgressIndicator(),
-                            //     errorWidget: (context, url, error) =>
-                            //         const Icon(Icons.error),
-                            //   ),
-                            // ),
+                            Flexible(
+                              flex: 6,
+                              child: CachedNetworkImage(
+                                width: resWidth / 2,
+                                fit: BoxFit.cover,
+                                imageUrl:
+                                    "${Config.server}/assets/homestayimages/${homestayList[index].productId}_1.png",
+                                    
+                                placeholder: (context, url) =>
+                                    const LinearProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                              ),
+                            ),
                             Flexible(
                                 flex: 4,
                                 child: Padding(
@@ -185,7 +186,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
                   position: _position,
                   user: widget.user,
                   placemarks: placemarks)));
-      // _loadProducts();
+       _loadProducts();
     } else {
       Fluttertoast.showToast(
           msg: "Please allow the app to access the location",

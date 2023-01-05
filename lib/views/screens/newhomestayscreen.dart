@@ -388,7 +388,9 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     String hsaddr = _hsaddrEditingController.text;
     String state = _hsstateEditingController.text;
     String local = _hslocalEditingController.text;
-    String base64Image = base64Encode(_image!.readAsBytesSync());
+    String base64Image1 = base64Encode(_imageList[0].readAsBytesSync());
+    String base64Image2 = base64Encode(_imageList[1].readAsBytesSync());
+    String base64Image3 = base64Encode(_imageList[2].readAsBytesSync());
 
     http.post(Uri.parse("${Config.server}/php/insert_homestay.php"), body: {
       "userid": widget.user.id,
@@ -400,12 +402,12 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
       "local": local,
       "lat": _lat,
       "lon": _lng,
-      "image": base64Image,
+      "image1": base64Image1,
+      "image2": base64Image2,
+      "image3": base64Image3,
       "registerhomestay": "registerhomestay"
     }).then((response) {
-      print(response);
       var data = jsonDecode(response.body);
-      print(data);
       if (response.statusCode == 200 && data['status'] == "success") {
         Fluttertoast.showToast(
             msg: "Success",
@@ -413,7 +415,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 1,
             fontSize: 14.0);
-        // Navigator.of(context).pop();
+        Navigator.of(context).pop();
         return;
       } else {
         Fluttertoast.showToast(
