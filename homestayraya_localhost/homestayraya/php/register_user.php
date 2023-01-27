@@ -13,7 +13,7 @@ $password = sha1($_POST['password']);
 $otp = rand(100000, 999999);
 $address = "na";
 
-$sqlinsert = "INSERT INTO `users_tb`(`user_email`, `user_name`, `user_password`, `user_phone`, `user_address`, `otp`) VALUES ('$email','$name','$password', '$phone','$address','$otp')";
+$sqlinsert = "INSERT INTO `users_tb`(`user_image`, `user_email`, `user_name`, `user_password`, `user_phone`, `user_address`, `user_verification`, `otp`) VALUES ('no', '$email','$name','$password', '$phone','$address', 'no', '$otp')";
 
 try {
 	if ($conn->query($sqlinsert) === TRUE) {
