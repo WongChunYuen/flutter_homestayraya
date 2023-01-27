@@ -8,9 +8,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:ndialog/ndialog.dart';
-import '../../config.dart';
-import '../../models/product.dart';
+import '../../serverconfig.dart';
+import '../../models/homestay.dart';
 import '../../models/user.dart';
+import 'detailscreen.dart';
 import 'newhomestayscreen.dart';
 
 class OwnerScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class OwnerScreen extends StatefulWidget {
 class _OwnerScreenState extends State<OwnerScreen> {
   var _lat, _lng;
   late Position _position;
-  List<Product> homestayList = <Product>[];
+  List<Homestay> homestayList = <Homestay>[];
   String titlecenter = "Loading...";
   var placemarks;
   final df = DateFormat('dd/MM/yyyy hh:mm a');
@@ -34,7 +35,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    _loadHomestays();
   }
 
   @override
@@ -101,10 +102,10 @@ class _OwnerScreenState extends State<OwnerScreen> {
                         elevation: 8,
                         child: InkWell(
                           onTap: () {
-                            // show details of the homestay
+                            _showhsDetails(index);
                           },
                           onLongPress: () {
-                            // delete the homestay
+                            _deletehsDialog(index);
                           },
                           child: Column(children: [
                             const SizedBox(
@@ -116,8 +117,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
                                 width: resWidth / 2,
                                 fit: BoxFit.cover,
                                 imageUrl:
-                                    "${Config.server}/assets/homestayimages/${homestayList[index].productId}_1.png",
-                                    
+                                    "${ServerConfig.server}/assets/homestayimages/${homestayList[index].homestayId}_1.png",
                                 placeholder: (context, url) =>
                                     const LinearProgressIndicator(),
                                 errorWidget: (context, url, error) =>
@@ -133,7 +133,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
                                       Text(
                                         truncateString(
                                             homestayList[index]
-                                                .productName
+                                                .homestayName
                                                 .toString(),
                                             15),
                                         style: const TextStyle(
@@ -141,10 +141,10 @@ class _OwnerScreenState extends State<OwnerScreen> {
                                             fontWeight: FontWeight.bold),
                                       ),
                                       Text(
-                                          "RM ${double.parse(homestayList[index].productPrice.toString()).toStringAsFixed(2)}"),
+                                          "RM ${double.parse(homestayList[index].homestayPrice.toString()).toStringAsFixed(2)}"),
                                       Text(df.format(DateTime.parse(
                                           homestayList[index]
-                                              .productDate
+                                              .homestayDate
                                               .toString()))),
                                     ],
                                   ),
@@ -186,7 +186,7 @@ class _OwnerScreenState extends State<OwnerScreen> {
                   position: _position,
                   user: widget.user,
                   placemarks: placemarks)));
-       _loadProducts();
+      _loadHomestays();
     } else {
       Fluttertoast.showToast(
           msg: "Please allow the app to access the location",
@@ -248,24 +248,24 @@ class _OwnerScreenState extends State<OwnerScreen> {
     return true;
   }
 
-  void _loadProducts() {
+  void _loadHomestays() {
     http
         .get(
       Uri.parse(
-          "${Config.server}/php/load_homestay.php?userid=${widget.user.id}"),
+          "${ServerConfig.server}/php/load_homestay.php?userid=${widget.user.id}"),
     )
         .then((response) {
       if (response.statusCode == 200) {
-        var jsondata =
-            jsonDecode(response.body); //decode response body that retrieved to jsondata array
+        var jsondata = jsonDecode(response
+            .body); //decode response body that retrieved to jsondata array
         if (jsondata['status'] == 'success') {
           var extractdata = jsondata['data']; //extract data from jsondata array
-          if (extractdata['products'] != null) {
-            homestayList = <Product>[]; 
-            extractdata['products'].forEach((v) {
-              //traverse products array list and add to the list object array homestayList
-              homestayList.add(Product.fromJson(
-                  v)); //add each product array to the list object array homestayList
+          if (extractdata['homestays'] != null) {
+            homestayList = <Homestay>[];
+            extractdata['homestays'].forEach((v) {
+              //traverse homestays array list and add to the list object array homestayList
+              homestayList.add(Homestay.fromJson(
+                  v)); //add each homestay array to the list object array homestayList
             });
             titlecenter = "Found";
           } else {
@@ -282,5 +282,91 @@ class _OwnerScreenState extends State<OwnerScreen> {
       }
       setState(() {});
     });
+  }
+
+  Future<void> _showhsDetails(int index) async {
+    Homestay homestay = Homestay.fromJson(homestayList[index].toJson());
+
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (content) => DetailsScreen(
+                  homestay: homestay,
+                  user: widget.user,
+                )));
+    _loadHomestays();
+  }
+
+  void _deletehsDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20.0))),
+          title: Text(
+            "Delete ${truncateString(homestayList[index].homestayName.toString(), 15)}",
+            textAlign: TextAlign.center,
+          ),
+          content: const Text("Are you sure?", textAlign: TextAlign.center),
+          actions: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  child: const Text(
+                    "Yes",
+                    style: TextStyle(),
+                  ),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    _deleteHomestay(index);
+                  },
+                ),
+                TextButton(
+                  child: const Text(
+                    "No",
+                    style: TextStyle(),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteHomestay(index) {
+    try {
+      http.post(Uri.parse("${ServerConfig.server}/php/delete_homestay.php"), body: {
+        "homestayid": homestayList[index].homestayId,
+      }).then((response) {
+        var data = jsonDecode(response.body);
+        if (response.statusCode == 200 && data['status'] == "success") {
+          Fluttertoast.showToast(
+              msg: "Success",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              fontSize: 14.0);
+          _loadHomestays();
+          return;
+        } else {
+          Fluttertoast.showToast(
+              msg: "Failed",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              fontSize: 14.0);
+          return;
+        }
+      });
+    } catch (e) {
+      print(e.toString());
+    }
   }
 }

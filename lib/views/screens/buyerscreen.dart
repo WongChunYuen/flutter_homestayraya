@@ -4,16 +4,16 @@ import 'loginscreen.dart';
 import 'ownerscreen.dart';
 import 'profilescreen.dart';
 
-// Main screen for the Homestay Raya application
-class MainScreen extends StatefulWidget {
+// Buyer screen for the Homestay Raya application
+class BuyerScreen extends StatefulWidget {
   final User user;
-  const MainScreen({super.key, required this.user});
+  const BuyerScreen({super.key, required this.user});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<BuyerScreen> createState() => _BuyerScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _BuyerScreenState extends State<BuyerScreen> {
   @override
   void dispose() {
     super.dispose();
@@ -83,12 +83,14 @@ class _MainScreenState extends State<MainScreen> {
   void _logoutUser() {
     User user = User(
         id: "0",
+        image: 'no',
         email: "unregistered",
         name: "unregistered",
         address: "na",
         phone: "0123456789",
+        verify: "no",
         regdate: "0");
     Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (content) => MainScreen(user: user)));
+        MaterialPageRoute(builder: (content) => BuyerScreen(user: user)));
   }
 }

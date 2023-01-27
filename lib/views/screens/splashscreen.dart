@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../config.dart';
+import '../../serverconfig.dart';
 import '../../models/user.dart';
-import 'mainscreen.dart';
+import 'buyerscreen.dart';
 import 'package:http/http.dart' as http;
 
 class SplashScreen extends StatefulWidget {
@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
     String _pass = (prefs.getString('pass')) ?? '';
     // If the shared_preferences is not empty then login
     if (_email.isNotEmpty) {
-      http.post(Uri.parse("${Config.server}/php/login_user.php"),
+      http.post(Uri.parse("${ServerConfig.server}/php/login_user.php"),
           body: {"email": _email, "password": _pass,"login": "login"}).then((response) {
         var jsonResponse = json.decode(response.body);
         if (response.statusCode == 200 && jsonResponse['status'] == "success") {
@@ -70,35 +70,39 @@ class _SplashScreenState extends State<SplashScreen> {
               () => Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (content) => MainScreen(user: user))));
+                      builder: (content) => BuyerScreen(user: user))));
         } else {
           User user = User(
               id: "0",
+              image: 'no',
               email: "unregistered",
               name: "unregistered",
               address: "na",
               phone: "0123456789",
+              verify: "no",
               regdate: "0");
           Timer(
               const Duration(seconds: 3),
               () => Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (content) => MainScreen(user: user))));
+                      builder: (content) => BuyerScreen(user: user))));
         }
       });
     } else {
       User user = User(
           id: "0",
+          image: 'no',
           email: "unregistered",
           name: "unregistered",
           address: "na",
           phone: "0123456789",
+          verify: "no",
           regdate: "0");
       Timer(
           const Duration(seconds: 3),
           () => Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (content) => MainScreen(user: user))));
+              MaterialPageRoute(builder: (content) => BuyerScreen(user: user))));
     }
   }
 }

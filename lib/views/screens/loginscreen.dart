@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import '../../config.dart';
+import '../../serverconfig.dart';
 import '../../models/user.dart';
-import 'mainscreen.dart';
+import 'buyerscreen.dart';
 import 'registerscreen.dart';
 
 // Login screen for the Homestay Raya application
@@ -176,17 +176,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
     String _email = _emailEditingController.text;
     String _pass = _passEditingController.text;
-    http.post(Uri.parse("${Config.server}/php/login_user.php"), body: {
+    http.post(Uri.parse("${ServerConfig.server}/php/login_user.php"), body: {
       "email": _email,
       "password": _pass,
       "login": "login"
     }).then((response) {
-      if (response.statusCode == 200) {
-        var jsonResponse = json.decode(response.body);
+      var jsonResponse = json.decode(response.body);
+      if (response.statusCode == 200 && jsonResponse['status'] == 'success') {
+        
         User user = User.fromJson(jsonResponse['data']);
         Navigator.pop(context);
         Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (content) => MainScreen(user: user)));
+            MaterialPageRoute(builder: (content) => BuyerScreen(user: user)));
       } else {
         Fluttertoast.showToast(
             msg: "Login Failed",
