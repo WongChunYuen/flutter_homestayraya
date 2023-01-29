@@ -64,10 +64,10 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
             ),
             Center(
               child: SizedBox(
-                height: 200, // card height
+                height: 230, // card height
                 child: PageView.builder(
                     itemCount: _imageList.length + 1,
-                    controller: PageController(viewportFraction: 0.7),
+                    controller: PageController(viewportFraction: 0.8),
                     // onPageChanged: (int index) =>
                     //     setState(() => _index = index),
                     itemBuilder: (BuildContext context, int index) {

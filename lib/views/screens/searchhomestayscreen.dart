@@ -13,24 +13,24 @@ import 'ownerscreen.dart';
 import 'profilescreen.dart';
 import 'package:http/http.dart' as http;
 
-import 'searchhomestayscreen.dart';
-
 // Buyer screen for the Homestay Raya application
-class BuyerScreen extends StatefulWidget {
+class SearchHomestayScreen extends StatefulWidget {
   final User user;
-  const BuyerScreen({super.key, required this.user});
+  const SearchHomestayScreen({super.key, required this.user});
 
   @override
-  State<BuyerScreen> createState() => _BuyerScreenState();
+  State<SearchHomestayScreen> createState() => _SearchHomestayScreenState();
 }
 
-class _BuyerScreenState extends State<BuyerScreen> {
+class _SearchHomestayScreenState extends State<SearchHomestayScreen> {
   Random random = Random();
   var val = 50; // for load pro pic if updated
   List<Homestay> homestayList = <Homestay>[];
   String titlecenter = "Loading...";
   late double screenHeight, screenWidth, resWidth;
   int rowcount = 2;
+  TextEditingController searchController = TextEditingController();
+  String search = "all";
   var seller;
   //for pagination
   var color;
@@ -42,9 +42,8 @@ class _BuyerScreenState extends State<BuyerScreen> {
     super.initState();
     // load profile picture if updated
     val = random.nextInt(1000);
-    //pagination
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      _loadHomestays(1);
+      _loadHomestays("all", 1);
     });
   }
 
@@ -66,11 +65,24 @@ class _BuyerScreenState extends State<BuyerScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Homestay Raya"),
-        actions: [
-          searchButton(),
-          verifyLogin(),
-        ],
+        title: Container(
+          color: Colors.white.withOpacity(0.7),
+          child: TextField(
+            controller: searchController,
+            decoration: InputDecoration(
+              hintText: "Search",
+              border: InputBorder.none,
+              hintStyle: const TextStyle(color: Colors.grey),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  search = searchController.text;
+                  _loadHomestays(search, 1);
+                },
+              ),
+            ),
+          ),
+        ),
       ),
       body: homestayList.isEmpty
           ? Center(
@@ -158,12 +170,12 @@ class _BuyerScreenState extends State<BuyerScreen> {
                       //build the list for textbutton with scroll
                       if ((curpage - 1) == index) {
                         //set current page number active
-                        color = Colors.indigoAccent;
+                        color = Colors.red;
                       } else {
                         color = Colors.black;
                       }
                       return TextButton(
-                          onPressed: () => {_loadHomestays(index + 1)},
+                          onPressed: () => {_loadHomestays(search, index + 1)},
                           child: Text(
                             (index + 1).toString(),
                             style: TextStyle(color: color, fontSize: 18),
@@ -218,7 +230,7 @@ class _BuyerScreenState extends State<BuyerScreen> {
                 MaterialPageRoute(
                     builder: (content) => OwnerScreen(user: widget.user)));
           } else if (value == 3) {
-            _logoutUser();
+            null;
           }
         },
       );
@@ -229,12 +241,53 @@ class _BuyerScreenState extends State<BuyerScreen> {
     return IconButton(
       icon: const Icon(Icons.search),
       onPressed: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (content) => SearchHomestayScreen(user: widget.user)));
+        _loadSearchDialog();
       },
     );
+  }
+
+  void _loadSearchDialog() {
+    searchController.text = "";
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          // return object of type Dialog
+          return StatefulBuilder(
+            builder: (context, StateSetter setState) {
+              return AlertDialog(
+                title: const Text(
+                  "Search ",
+                ),
+                content: SizedBox(
+                  //height: screenHeight / 4,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                            labelText: 'Search',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(5.0))),
+                      ),
+                      const SizedBox(height: 5),
+                    ],
+                  ),
+                ),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () {
+                      search = searchController.text;
+                      Navigator.of(context).pop();
+                      _loadHomestays(search, 1);
+                    },
+                    child: const Text("Search"),
+                  )
+                ],
+              );
+            },
+          );
+        });
   }
 
   // login method to let user go to login screen
@@ -243,29 +296,14 @@ class _BuyerScreenState extends State<BuyerScreen> {
         context, MaterialPageRoute(builder: (content) => const LoginScreen()));
   }
 
-  // Method that let user to log out
-  void _logoutUser() {
-    User user = User(
-        id: "0",
-        image: 'no',
-        email: "unregistered",
-        name: "unregistered",
-        address: "na",
-        phone: "0123456789",
-        verify: "no",
-        regdate: "0");
-    Navigator.pushReplacement(context,
-        MaterialPageRoute(builder: (content) => BuyerScreen(user: user)));
-  }
-
-  void _loadHomestays(int pageNo) {
+  void _loadHomestays(String search, int pageNo) {
     curpage = pageNo;
     numofpage ?? 1; //get total num of pages if not by default set to only 1
 
     http
         .get(
       Uri.parse(
-          "${ServerConfig.server}/php/loadallhomestays.php?search=all&pageno=$pageNo"),
+          "${ServerConfig.server}/php/loadallhomestays.php?search=$search&pageno=$pageNo"),
     )
         .then((response) {
       ProgressDialog progressDialog = ProgressDialog(
@@ -299,12 +337,15 @@ class _BuyerScreenState extends State<BuyerScreen> {
             titlecenter = "Found";
           } else {
             titlecenter =
-                "No Homestay Available"; //if no data returned show title center
+                "Cannot find this Homestay"; //if no data returned show title center
             homestayList.clear();
           }
+        } else {
+          titlecenter = "Cannot find this Homestay"; //status code other than 200
+          homestayList.clear();
         }
       } else {
-        titlecenter = "No Homestay Available"; //status code other than 200
+        titlecenter = "Cannot find this Homestay"; //status code other than 200
         homestayList.clear(); //clear homestayList array
       }
 

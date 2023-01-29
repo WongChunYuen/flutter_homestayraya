@@ -28,7 +28,6 @@ class _OwnerScreenState extends State<OwnerScreen> {
   List<Homestay> homestayList = <Homestay>[];
   String titlecenter = "Loading...";
   var placemarks;
-  final df = DateFormat('dd/MM/yyyy hh:mm a');
   late double screenHeight, screenWidth, resWidth;
   int rowcount = 2;
 
@@ -63,16 +62,10 @@ class _OwnerScreenState extends State<OwnerScreen> {
               value: 0,
               child: Text("New Homestay"),
             ),
-            const PopupMenuItem<int>(
-              value: 1,
-              child: Text("My Rental"),
-            ),
           ];
         }, onSelected: (value) {
           if (value == 0) {
             _gotoNewHomestay();
-          } else if (value == 1) {
-            // Show my homestay rental
           }
         }),
       ]),
@@ -142,10 +135,9 @@ class _OwnerScreenState extends State<OwnerScreen> {
                                       ),
                                       Text(
                                           "RM ${double.parse(homestayList[index].homestayPrice.toString()).toStringAsFixed(2)}"),
-                                      Text(df.format(DateTime.parse(
-                                          homestayList[index]
-                                              .homestayDate
-                                              .toString()))),
+                                      Text(homestayList[index]
+                                          .homestayDate
+                                          .toString()),
                                     ],
                                   ),
                                 ))
@@ -255,29 +247,22 @@ class _OwnerScreenState extends State<OwnerScreen> {
           "${ServerConfig.server}/php/load_homestay.php?userid=${widget.user.id}"),
     )
         .then((response) {
-      if (response.statusCode == 200) {
-        var jsondata = jsonDecode(response
-            .body); //decode response body that retrieved to jsondata array
-        if (jsondata['status'] == 'success') {
-          var extractdata = jsondata['data']; //extract data from jsondata array
-          if (extractdata['homestays'] != null) {
-            homestayList = <Homestay>[];
-            extractdata['homestays'].forEach((v) {
-              //traverse homestays array list and add to the list object array homestayList
-              homestayList.add(Homestay.fromJson(
-                  v)); //add each homestay array to the list object array homestayList
-            });
-            titlecenter = "Found";
-          } else {
-            titlecenter =
-                "No Homestay Available"; //if no data returned show title center
-            homestayList.clear();
-          }
+      var jsondata = jsonDecode(response.body);
+      if (response.statusCode == 200 && jsondata['status'] == 'success') {
+        var extractdata = jsondata['data']; //extract data from jsondata array
+        if (extractdata['homestays'] != null) {
+          homestayList = <Homestay>[];
+          extractdata['homestays'].forEach((v) {
+            //traverse homestays array list and add to the list object array homestayList
+            homestayList.add(Homestay.fromJson(v));
+          });
+          titlecenter = "Found";
         } else {
           titlecenter = "No Homestay Available";
+          homestayList.clear();
         }
       } else {
-        titlecenter = "No Homestay Available"; //status code other than 200
+        titlecenter = "No Homestay Available";
         homestayList.clear(); //clear homestayList array
       }
       setState(() {});
@@ -342,9 +327,10 @@ class _OwnerScreenState extends State<OwnerScreen> {
 
   void _deleteHomestay(index) {
     try {
-      http.post(Uri.parse("${ServerConfig.server}/php/delete_homestay.php"), body: {
-        "homestayid": homestayList[index].homestayId,
-      }).then((response) {
+      http.post(Uri.parse("${ServerConfig.server}/php/delete_homestay.php"),
+          body: {
+            "homestayid": homestayList[index].homestayId,
+          }).then((response) {
         var data = jsonDecode(response.body);
         if (response.statusCode == 200 && data['status'] == "success") {
           Fluttertoast.showToast(

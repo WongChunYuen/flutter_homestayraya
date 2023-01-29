@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -43,6 +44,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   final List<File> _imageList = [];
   var pathAsset = "assets/images/camera.png";
   bool _editKey = false;
+  late double screenHeight, screenWidth, resWidth;
 
   @override
   void initState() {
@@ -53,6 +55,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth <= 600) {
+      resWidth = screenWidth;
+    } else {
+      resWidth = screenWidth * 0.90;
+    }
     return Scaffold(
         appBar: AppBar(title: const Text("Homestay Details"), actions: [
           PopupMenuButton(itemBuilder: (context) {
@@ -83,10 +92,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
             Center(
               child: _editKey
                   ? SizedBox(
-                      height: 200,
+                      height: 250,
                       child: PageView.builder(
                           itemCount: _imageList.length + 1,
-                          controller: PageController(viewportFraction: 0.7),
+                          controller: PageController(viewportFraction: 0.9),
                           itemBuilder: (BuildContext context, int index) {
                             return Transform.scale(
                               scale: 1,
@@ -115,10 +124,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                           }),
                     )
                   : SizedBox(
-                      height: 200,
+                      height: 250,
                       child: PageView.builder(
                           itemCount: _imageList.length,
-                          controller: PageController(viewportFraction: 0.7),
+                          controller: PageController(viewportFraction: 0.9),
                           itemBuilder: (BuildContext context, int index) {
                             return Transform.scale(
                               scale: 1,
@@ -547,6 +556,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
             timeInSecForIosWeb: 1,
             fontSize: 14.0);
         _editKey = false;
+        DefaultCacheManager manager = DefaultCacheManager();
+        manager.emptyCache();
         setState(() {});
         return;
       } else {
@@ -569,7 +580,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(20.0))),
           title: Text(
-            "Delete${widget.homestay.homestayName}",
+            "Delete ${widget.homestay.homestayName}",
             textAlign: TextAlign.center,
           ),
           content: const Text("Are you sure?", textAlign: TextAlign.center),
@@ -659,7 +670,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   Future<File> urlToFile(String imageUrl) async {
 // generate random number.
-    var rng = new Random();
+    var rng = Random();
 // get temporary directory of device.
     Directory tempDir = await getTemporaryDirectory();
 // get temporary path from temporary directory.

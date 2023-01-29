@@ -246,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Navigator.of(context).pop(),
                           _onGallery(),
                         },
-                    icon: const Icon(Icons.browse_gallery),
+                    icon: const Icon(Icons.photo),
                     label: const Text("Gallery")),
                 TextButton.icon(
                     onPressed: () => {Navigator.of(context).pop(), _onCamera()},
@@ -293,7 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       uiSettings: [
         AndroidUiSettings(
             toolbarTitle: 'Cropper',
-            toolbarColor: Colors.indigo,
+            toolbarColor: Colors.blueAccent,
             toolbarWidgetColor: Colors.white,
             initAspectRatio: CropAspectRatioPreset.original,
             lockAspectRatio: false),
