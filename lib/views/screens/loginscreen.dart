@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../serverconfig.dart';
 import '../../models/user.dart';
 import 'buyerscreen.dart';
+import 'forgotpasswordscreen.dart';
 import 'registerscreen.dart';
 
 // Login screen for the Homestay Raya application
@@ -153,8 +154,8 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 8,
             ),
             GestureDetector(
-              onTap: _goHome,
-              child: const Text("Go back Home", style: TextStyle(fontSize: 18)),
+              onTap: _forgotPassword,
+              child: const Text("Forgot Password", style: TextStyle(fontSize: 18)),
             )
           ],
         ),
@@ -182,6 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
       "login": "login"
     }).then((response) {
       var jsonResponse = json.decode(response.body);
+      print(jsonResponse);
       if (response.statusCode == 200 && jsonResponse['status'] == 'success') {
         
         User user = User.fromJson(jsonResponse['data']);
@@ -199,9 +201,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  // Method that let user go back home screen
-  void _goHome() {
-    Navigator.pop(context);
+  // Method that let user reset password
+  void _forgotPassword() {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (content) => const ForgotPasswordScreen()));
   }
 
   // Method that let user navigate to registerscreen

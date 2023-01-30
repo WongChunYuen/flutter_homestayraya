@@ -135,9 +135,12 @@ class _BuyerScreenState extends State<BuyerScreen> {
                                       ),
                                       Text(
                                           "RM ${double.parse(homestayList[index].homestayPrice.toString()).toStringAsFixed(2)}"),
-                                      Text(homestayList[index]
-                                          .homestayDate
-                                          .toString()),
+                                      Text(
+                                        truncateString(
+                                            "${homestayList[index].homestayLocal}, ${homestayList[index].homestayState}"
+                                                .toString(),
+                                            15),
+                                      ),
                                     ],
                                   ),
                                 ))
@@ -155,9 +158,7 @@ class _BuyerScreenState extends State<BuyerScreen> {
                     itemCount: numofpage,
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (context, index) {
-                      //build the list for textbutton with scroll
                       if ((curpage - 1) == index) {
-                        //set current page number active
                         color = Colors.indigoAccent;
                       } else {
                         color = Colors.black;
@@ -176,11 +177,78 @@ class _BuyerScreenState extends State<BuyerScreen> {
     );
   }
 
+// method that verify user login status. If no, icon top right will prompt login. If yes, icon top right can let user perform more actions.
   Widget verifyLogin() {
     if (widget.user.id.toString() == "0" &&
         widget.user.email.toString() == "unregistered") {
       return IconButton(
           onPressed: _loginButton, icon: const Icon(Icons.account_circle));
+    } else if (widget.user.image.toString() == "no") {
+      return PopupMenuButton<int>(
+        icon: const Icon(Icons.account_circle),
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 1,
+            child: Text('Profile'),
+          ),
+          const PopupMenuItem(
+            value: 2,
+            child: Text('My Homestay'),
+          ),
+          const PopupMenuItem(
+            value: 3,
+            child: Text('Logout'),
+          ),
+        ],
+        onSelected: (value) {
+          if (value == 1) {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (content) => ProfileScreen(user: widget.user)));
+          } else if (value == 2) {
+            if (widget.user.verify.toString() == "no") {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                    title: const Text(
+                      "Verify Account",
+                      textAlign: TextAlign.center,
+                    ),
+                    content: const Text(
+                      "You need to verify your account to become an owner",
+                      textAlign: TextAlign.center,
+                    ),
+                    actions: <Widget>[
+                      Center(
+                        child: TextButton(
+                          child: const Text(
+                            "Okay",
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (content) => OwnerScreen(user: widget.user)));
+            }
+          } else if (value == 3) {
+            _logoutUser();
+          }
+        },
+      );
     } else {
       return PopupMenuButton<int>(
         icon: Container(
@@ -213,10 +281,43 @@ class _BuyerScreenState extends State<BuyerScreen> {
                 MaterialPageRoute(
                     builder: (content) => ProfileScreen(user: widget.user)));
           } else if (value == 2) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (content) => OwnerScreen(user: widget.user)));
+            if (widget.user.verify.toString() == "no") {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                    title: const Text(
+                      "Verify Account",
+                      textAlign: TextAlign.center,
+                    ),
+                    content: const Text(
+                      "You need to verify your account to become an owner",
+                      textAlign: TextAlign.center,
+                    ),
+                    actions: <Widget>[
+                      Center(
+                        child: TextButton(
+                          child: const Text(
+                            "Okay",
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (content) => OwnerScreen(user: widget.user)));
+            }
           } else if (value == 3) {
             _logoutUser();
           }
@@ -225,6 +326,7 @@ class _BuyerScreenState extends State<BuyerScreen> {
     }
   }
 
+// search button widget
   Widget searchButton() {
     return IconButton(
       icon: const Icon(Icons.search),
@@ -258,9 +360,10 @@ class _BuyerScreenState extends State<BuyerScreen> {
         MaterialPageRoute(builder: (content) => BuyerScreen(user: user)));
   }
 
+// method that let user load the homestay list of all owners
   void _loadHomestays(int pageNo) {
     curpage = pageNo;
-    numofpage ?? 1; //get total num of pages if not by default set to only 1
+    numofpage ?? 1;
 
     http
         .get(
@@ -276,14 +379,11 @@ class _BuyerScreenState extends State<BuyerScreen> {
       );
       progressDialog.show();
       print(response.body);
-      // wait for response from the request
+
       if (response.statusCode == 200) {
-        //if statuscode OK
-        var jsondata =
-            jsonDecode(response.body); //decode response body to jsondata array
+        var jsondata = jsonDecode(response.body);
         if (jsondata['status'] == 'success') {
-          //check if status data array is success
-          var extractdata = jsondata['data']; //extract data from jsondata array
+          var extractdata = jsondata['data'];
 
           if (extractdata['homestays'] != null) {
             numofpage = int.parse(jsondata['numofpage']); //get number of pages
@@ -292,28 +392,28 @@ class _BuyerScreenState extends State<BuyerScreen> {
             //check if  array object is not null
             homestayList = <Homestay>[]; //complete the array object definition
             extractdata['homestays'].forEach((v) {
-              //traverse homestays array list and add to the list object array homestayList
-              homestayList.add(Homestay.fromJson(
-                  v)); //add each homestay array to the list object array homestayList
+              homestayList.add(Homestay.fromJson(v));
             });
             titlecenter = "Found";
           } else {
-            titlecenter =
-                "No Homestay Available"; //if no data returned show title center
+            titlecenter = "No Homestay Available";
             homestayList.clear();
           }
+        } else {
+          titlecenter = "No Homestay Available";
+          homestayList.clear();
         }
       } else {
-        titlecenter = "No Homestay Available"; //status code other than 200
-        homestayList.clear(); //clear homestayList array
+        titlecenter = "No Homestay Available";
+        homestayList.clear();
       }
-
-      setState(() {}); //refresh UI
+      setState(() {});
       progressDialog.dismiss();
     });
   }
 
-  _showDetails(int index) async {
+// method to show homestay details
+  void _showDetails(int index) async {
     Homestay homestay = Homestay.fromJson(homestayList[index].toJson());
     loadSingleSeller(index);
     //todo update seller object with empty object.
@@ -340,7 +440,8 @@ class _BuyerScreenState extends State<BuyerScreen> {
     });
   }
 
-  loadSingleSeller(int index) {
+// method that get the seller information for cartain homestay
+  void loadSingleSeller(int index) {
     http.post(Uri.parse("${ServerConfig.server}/php/loadseller.php"),
         body: {"sellerid": homestayList[index].userId}).then((response) {
       print(response.body);
@@ -351,6 +452,7 @@ class _BuyerScreenState extends State<BuyerScreen> {
     });
   }
 
+// method to not let the string over the cards
   String truncateString(String str, int size) {
     if (str.length > size) {
       str = str.substring(0, size);

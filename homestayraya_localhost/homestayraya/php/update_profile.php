@@ -55,6 +55,14 @@ if (isset($_POST['newname'])) {
     die();
 }
 
+if (isset($_POST['newemail'])) {
+    $email = $_POST['newemail'];
+    $userid = $_POST['userid'];
+    $sqlupdate = "UPDATE users_tb SET user_email ='$email' WHERE user_id = '$userid'";
+    databaseUpdate($sqlupdate);
+    die();
+}
+
 if (isset($_POST['newphone'])) {
     $phone = $_POST['newphone'];
     $userid = $_POST['userid'];

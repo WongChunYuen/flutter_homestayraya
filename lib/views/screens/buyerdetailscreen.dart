@@ -179,6 +179,7 @@ class _BuyerDetailScreenState extends State<BuyerDetailScreen> {
     );
   }
 
+// method load seller details
   Future<void> _loadDetails() async {
     _sellernameController.text = widget.seller.name.toString();
     _hsdescController.text = widget.homestay.homestayDesc.toString();
@@ -188,6 +189,7 @@ class _BuyerDetailScreenState extends State<BuyerDetailScreen> {
     _hslocalController.text = widget.homestay.homestayLocal.toString();
   }
 
+// method load homestay images
   Future<void> _loadImages() async {
     int imageLength = int.parse(widget.homestay.homestayImages.toString());
 
@@ -200,6 +202,7 @@ class _BuyerDetailScreenState extends State<BuyerDetailScreen> {
     setState(() {});
   }
 
+// method redirect to phone call
   Future<void> _makePhoneCall() async {
     final Uri launchUri = Uri(
       scheme: 'tel',
@@ -208,6 +211,7 @@ class _BuyerDetailScreenState extends State<BuyerDetailScreen> {
     await launchUrl(launchUri);
   }
 
+// method redirect to message
   Future<void> _makeSmS() async {
     final Uri launchUri = Uri(
       scheme: 'sms',
@@ -216,6 +220,7 @@ class _BuyerDetailScreenState extends State<BuyerDetailScreen> {
     await launchUrl(launchUri);
   }
 
+// method redirect to whatsApp
   openwhatsapp() async {
     var whatsapp = widget.seller.phone;
     var whatsappURlAndroid = "whatsapp://send?phone=$whatsapp&text=hello";
@@ -239,6 +244,7 @@ class _BuyerDetailScreenState extends State<BuyerDetailScreen> {
     }
   }
 
+// method to open map
   Future<void> _onRoute() async {
     final Uri launchUri = Uri(
         scheme: 'https',
@@ -247,10 +253,11 @@ class _BuyerDetailScreenState extends State<BuyerDetailScreen> {
             widget.homestay.homestayLat.toString() +
             "," +
             widget.homestay.homestayLng.toString() +
-            ",20z");
+            ",18z");
     await launchUrl(launchUri);
   }
 
+// method that verify user login status. if yes can get seller info, if no cannot show.
   Widget _verifyUser() {
     if (widget.user.id.toString() == "0" &&
         widget.user.email.toString() == "unregistered") {

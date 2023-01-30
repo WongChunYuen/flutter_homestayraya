@@ -41,14 +41,15 @@ class _DetailsScreenState extends State<DetailsScreen> {
   final _formKey = GlobalKey<FormState>();
 
   File? _image;
-  final List<File> _imageList = [];
+  final List<File> _imageList = []; // store homestay images in a list
   var pathAsset = "assets/images/camera.png";
-  bool _editKey = false;
+  bool _editKey = false; // for owner to edit thier homestay details
   late double screenHeight, screenWidth, resWidth;
 
   @override
   void initState() {
     super.initState();
+    // load the homestay images and details in the beginning
     _loadDetails();
     _loadImages();
   }
@@ -113,8 +114,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                         image: _imageList.length > index
                                             ? FileImage(_imageList[index])
                                                 as ImageProvider
-                                            // NetworkImage(_imageList[index]
-                                            //     .toString()) as ImageProvider
                                             : AssetImage(pathAsset),
                                         fit: BoxFit.cover,
                                       )),
@@ -306,7 +305,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                   onPressed: () {
                                     _editKey = false;
                                     setState(() {
-                                      _imageList.clear();
                                       _loadImages();
                                       _loadDetails();
                                     });
@@ -324,6 +322,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
         ));
   }
 
+// method to show confirmation dialog and check the validation of homestay details
   void _updateHomestayDialog() {
     if (_imageList.length < 2) {
       Fluttertoast.showToast(
@@ -342,52 +341,54 @@ class _DetailsScreenState extends State<DetailsScreen> {
           timeInSecForIosWeb: 1,
           fontSize: 14.0);
       return;
-    }
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20.0))),
-          title: const Text(
-            "Update homestay",
-            textAlign: TextAlign.center,
-          ),
-          content: const Text(
-            "Are you sure?",
-            textAlign: TextAlign.center,
-          ),
-          actions: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextButton(
-                  child: const Text(
-                    "Yes",
-                    style: TextStyle(),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _updatetHomestay();
-                  },
-                ),
-                TextButton(
-                  child: const Text(
-                    "No",
-                    style: TextStyle(),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            title: const Text(
+              "Update homestay",
+              textAlign: TextAlign.center,
             ),
-          ],
-        );
-      },
-    );
+            content: const Text(
+              "Are you sure?",
+              textAlign: TextAlign.center,
+            ),
+            actions: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    child: const Text(
+                      "Yes",
+                      style: TextStyle(),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _updatetHomestay();
+                    },
+                  ),
+                  TextButton(
+                    child: const Text(
+                      "No",
+                      style: TextStyle(),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
+// method to let owner update or delete homeestay images
   void _manageImageDialog(int num) {
     if (_imageList.length > num) {
       showDialog(
@@ -436,6 +437,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     }
   }
 
+// method for select homestay images from gallery or camera
   void _selectImageDialog(int num) {
     showDialog(
       context: context,
@@ -462,6 +464,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     );
   }
 
+// method open camara
   Future<void> _onCamera(int num) async {
     Navigator.pop(context);
     final picker = ImagePicker();
@@ -478,6 +481,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     }
   }
 
+// method open gallery
   Future<void> _onGallery(int num) async {
     Navigator.pop(context);
     final picker = ImagePicker();
@@ -494,6 +498,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     }
   }
 
+// method crop image
   Future<void> cropImage(int num) async {
     CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: _image!.path,
@@ -524,6 +529,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     }
   }
 
+// method to update the homestay details
   void _updatetHomestay() {
     String hsname = _hsnameEditingController.text;
     String hsdesc = _hsdescEditingController.text;
@@ -572,6 +578,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     });
   }
 
+// method to show delete dialog if owner want to delete homestay
   void _deletehsDialog() {
     showDialog(
       context: context,
@@ -615,6 +622,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     );
   }
 
+// method to delete homestay
   void _deleteHomestay() {
     try {
       http.post(Uri.parse("${ServerConfig.server}/php/delete_homestay.php"),
@@ -646,6 +654,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     }
   }
 
+// method that load homestay details
   Future<void> _loadDetails() async {
     _hsnameEditingController.text = widget.homestay.homestayName.toString();
     _hsdescEditingController.text = widget.homestay.homestayDesc.toString();
@@ -655,7 +664,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
     _hslocalEditingController.text = widget.homestay.homestayLocal.toString();
   }
 
+// method to load homestay images
   Future<void> _loadImages() async {
+    _imageList.clear();
     int imageLength = int.parse(widget.homestay.homestayImages.toString());
 
     for (int i = 1; i <= imageLength; i++) {
@@ -668,6 +679,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
     setState(() {});
   }
 
+// method to convert url images to file images
   Future<File> urlToFile(String imageUrl) async {
 // generate random number.
     var rng = Random();
@@ -676,7 +688,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
 // get temporary path from temporary directory.
     String tempPath = tempDir.path;
 // create a new file in temporary path with random file name.
-    File file = File('$tempPath${rng.nextInt(100)}.png');
+    File file = File('$tempPath${rng.nextInt(1000)}.png');
 // call http.get method and pass imageUrl into it to get response.
     var uri = Uri.parse(imageUrl);
     http.Response response = await http.get(uri);

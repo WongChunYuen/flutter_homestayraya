@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../serverconfig.dart';
 import '../../models/user.dart';
 import 'buyerscreen.dart';
+import 'resetpasswordscreen.dart';
 
 // Profile screen for the Homestay Raya application
 class ProfileScreen extends StatefulWidget {
@@ -34,7 +35,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _dateregEditingController =
       TextEditingController();
   Random random = Random();
+  final _formKey = GlobalKey<FormState>();
 
+// know the image and verify status in the beginning
+// load the user information
   @override
   void initState() {
     super.initState();
@@ -55,7 +59,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Future.value(false);
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("Profile")),
+        appBar: AppBar(title: const Text("Profile"), actions: [
+          PopupMenuButton(itemBuilder: (context) {
+            return [
+              const PopupMenuItem<int>(
+                value: 0,
+                child: Text("Change password"),
+              ),
+            ];
+          }, onSelected: (value) {
+            if (value == 0) {
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (content) => ResetPasswordScreen(
+                          email: widget.user.email.toString())));
+            }
+          }),
+        ]),
         body: SingleChildScrollView(
           child: Container(
             padding: const EdgeInsets.all(20),
@@ -216,7 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Method that load user preference
+  // Method that load user information
   void _loadUserDetails() {
     if (widget.user.name.toString().isNotEmpty) {
       setState(() {
@@ -309,6 +330,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+// method to update profile image
   void _updateProfileImage(image) {
     String base64Image = base64Encode(image!.readAsBytesSync());
     http.post(Uri.parse("${ServerConfig.server}/php/update_profile.php"),
@@ -333,8 +355,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               MaterialPageRoute(
                   builder: (content) => ProfileScreen(user: user)));
         } else {
-          setState(() {});
+          setState(() {}); // refresh the screen
         }
+        // clear the cache data
         DefaultCacheManager manager = DefaultCacheManager();
         manager.emptyCache();
       } else {
@@ -380,6 +403,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
+                    setState(() {
+                      _loadUserDetails();
+                    });
                   },
                 ),
               ],
@@ -423,42 +449,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Edit email"),
-          content: TextFormField(
-            controller: _emailEditingController,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-          actions: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextButton(
-                  child: const Text(
-                    "Save",
-                    style: TextStyle(),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                    // Edit method
-                  },
-                ),
-                TextButton(
-                  child: const Text(
-                    "Cancel",
-                    style: TextStyle(),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+        return Form(
+          key: _formKey,
+          child: AlertDialog(
+            title: const Text("Edit email"),
+            content: TextFormField(
+              controller: _emailEditingController,
+              keyboardType: TextInputType.emailAddress,
+              validator: (val) =>
+                  val!.isEmpty || !val.contains("@") || !val.contains(".")
+                      ? "Enter a valid email"
+                      : null,
+              decoration: const InputDecoration(labelText: 'Email'),
             ),
-          ],
+            actions: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    child: const Text(
+                      "Save",
+                      style: TextStyle(),
+                    ),
+                    onPressed: () {
+                      String newemail = _emailEditingController.text;
+                      _updateEmail(newemail);
+                    },
+                  ),
+                  TextButton(
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      setState(() {
+                        _loadUserDetails();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       },
     );
+  }
+
+  void _updateEmail(String newemail) {
+    if (_formKey.currentState!.validate()) {
+      Navigator.of(context).pop();
+      http.post(Uri.parse("${ServerConfig.server}/php/update_profile.php"),
+          body: {
+            "userid": widget.user.id,
+            "newemail": newemail,
+          }).then((response) {
+        print(response.body);
+        var jsondata = jsonDecode(response.body);
+        if (response.statusCode == 200 && jsondata['status'] == 'success') {
+          Fluttertoast.showToast(
+              msg: "Success",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              fontSize: 16.0);
+          setState(() {
+            widget.user.email = newemail;
+          });
+        } else {
+          Fluttertoast.showToast(
+              msg: "Failed",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              fontSize: 16.0);
+        }
+      });
+    }
   }
 
   void _editPhoneDialog() {
@@ -494,6 +562,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
+                    setState(() {
+                      _loadUserDetails();
+                    });
                   },
                 ),
               ],
@@ -565,6 +636,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
+                    setState(() {
+                      _loadUserDetails();
+                    });
                   },
                 ),
               ],
@@ -604,6 +678,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+// for user verification
   void _verifyUserDialog() {
     showDialog(
       context: context,
@@ -640,6 +715,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
+                    setState(() {
+                      _loadUserDetails();
+                    });
                   },
                 ),
               ],
@@ -726,6 +804,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+// send the MyKad and selfie image to the server in order to verify their account
   void _updateVerification(imageMyKad, imageSelfie) {
     String base64ImageMyKad = base64Encode(imageMyKad!.readAsBytesSync());
     String base64ImageSelfie = base64Encode(imageSelfie!.readAsBytesSync());

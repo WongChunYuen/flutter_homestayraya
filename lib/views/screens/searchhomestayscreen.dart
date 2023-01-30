@@ -13,7 +13,7 @@ import 'ownerscreen.dart';
 import 'profilescreen.dart';
 import 'package:http/http.dart' as http;
 
-// Buyer screen for the Homestay Raya application
+// Search screen for the Homestay Raya application
 class SearchHomestayScreen extends StatefulWidget {
   final User user;
   const SearchHomestayScreen({super.key, required this.user});
@@ -24,7 +24,7 @@ class SearchHomestayScreen extends StatefulWidget {
 
 class _SearchHomestayScreenState extends State<SearchHomestayScreen> {
   Random random = Random();
-  var val = 50; // for load pro pic if updated
+  var val = 50;
   List<Homestay> homestayList = <Homestay>[];
   String titlecenter = "Loading...";
   late double screenHeight, screenWidth, resWidth;
@@ -32,7 +32,6 @@ class _SearchHomestayScreenState extends State<SearchHomestayScreen> {
   TextEditingController searchController = TextEditingController();
   String search = "all";
   var seller;
-  //for pagination
   var color;
   var numofpage, curpage = 1;
   int numberofresult = 0;
@@ -188,117 +187,10 @@ class _SearchHomestayScreenState extends State<SearchHomestayScreen> {
     );
   }
 
-  Widget verifyLogin() {
-    if (widget.user.id.toString() == "0" &&
-        widget.user.email.toString() == "unregistered") {
-      return IconButton(
-          onPressed: _loginButton, icon: const Icon(Icons.account_circle));
-    } else {
-      return PopupMenuButton<int>(
-        icon: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                    image: NetworkImage(
-                        "${ServerConfig.server}/assets/profileimages/${widget.user.id}.png?v=$val"),
-                    fit: BoxFit.cover))),
-        itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 1,
-            child: Text('Profile'),
-          ),
-          const PopupMenuItem(
-            value: 2,
-            child: Text('My Homestay'),
-          ),
-          const PopupMenuItem(
-            value: 3,
-            child: Text('Logout'),
-          ),
-        ],
-        onSelected: (value) {
-          if (value == 1) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (content) => ProfileScreen(user: widget.user)));
-          } else if (value == 2) {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (content) => OwnerScreen(user: widget.user)));
-          } else if (value == 3) {
-            null;
-          }
-        },
-      );
-    }
-  }
-
-  Widget searchButton() {
-    return IconButton(
-      icon: const Icon(Icons.search),
-      onPressed: () {
-        _loadSearchDialog();
-      },
-    );
-  }
-
-  void _loadSearchDialog() {
-    searchController.text = "";
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          // return object of type Dialog
-          return StatefulBuilder(
-            builder: (context, StateSetter setState) {
-              return AlertDialog(
-                title: const Text(
-                  "Search ",
-                ),
-                content: SizedBox(
-                  //height: screenHeight / 4,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                            labelText: 'Search',
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5.0))),
-                      ),
-                      const SizedBox(height: 5),
-                    ],
-                  ),
-                ),
-                actions: [
-                  ElevatedButton(
-                    onPressed: () {
-                      search = searchController.text;
-                      Navigator.of(context).pop();
-                      _loadHomestays(search, 1);
-                    },
-                    child: const Text("Search"),
-                  )
-                ],
-              );
-            },
-          );
-        });
-  }
-
-  // login method to let user go to login screen
-  void _loginButton() {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (content) => const LoginScreen()));
-  }
-
+// method to load all homestays
   void _loadHomestays(String search, int pageNo) {
     curpage = pageNo;
-    numofpage ?? 1; //get total num of pages if not by default set to only 1
+    numofpage ?? 1;
 
     http
         .get(
@@ -314,47 +206,38 @@ class _SearchHomestayScreenState extends State<SearchHomestayScreen> {
       );
       progressDialog.show();
       print(response.body);
-      // wait for response from the request
       if (response.statusCode == 200) {
-        //if statuscode OK
-        var jsondata =
-            jsonDecode(response.body); //decode response body to jsondata array
+        var jsondata = jsonDecode(response.body);
         if (jsondata['status'] == 'success') {
-          //check if status data array is success
           var extractdata = jsondata['data']; //extract data from jsondata array
 
           if (extractdata['homestays'] != null) {
-            numofpage = int.parse(jsondata['numofpage']); //get number of pages
-            numberofresult = int.parse(jsondata[
-                'numberofresult']); //get total number of result returned
-            //check if  array object is not null
-            homestayList = <Homestay>[]; //complete the array object definition
+            numofpage = int.parse(jsondata['numofpage']);
+            numberofresult = int.parse(jsondata['numberofresult']);
+
+            homestayList = <Homestay>[];
             extractdata['homestays'].forEach((v) {
-              //traverse homestays array list and add to the list object array homestayList
-              homestayList.add(Homestay.fromJson(
-                  v)); //add each homestay array to the list object array homestayList
+              homestayList.add(Homestay.fromJson(v));
             });
             titlecenter = "Found";
           } else {
-            titlecenter =
-                "Cannot find this Homestay"; //if no data returned show title center
+            titlecenter = "Cannot find this Homestay";
             homestayList.clear();
           }
         } else {
-          titlecenter = "Cannot find this Homestay"; //status code other than 200
+          titlecenter = "Cannot find this Homestay";
           homestayList.clear();
         }
       } else {
-        titlecenter = "Cannot find this Homestay"; //status code other than 200
-        homestayList.clear(); //clear homestayList array
+        titlecenter = "Cannot find this Homestay";
+        homestayList.clear();
       }
-
-      setState(() {}); //refresh UI
+      setState(() {});
       progressDialog.dismiss();
     });
   }
 
-  _showDetails(int index) async {
+  void _showDetails(int index) async {
     Homestay homestay = Homestay.fromJson(homestayList[index].toJson());
     loadSingleSeller(index);
     //todo update seller object with empty object.
@@ -381,7 +264,7 @@ class _SearchHomestayScreenState extends State<SearchHomestayScreen> {
     });
   }
 
-  loadSingleSeller(int index) {
+  void loadSingleSeller(int index) {
     http.post(Uri.parse("${ServerConfig.server}/php/loadseller.php"),
         body: {"sellerid": homestayList[index].userId}).then((response) {
       print(response.body);

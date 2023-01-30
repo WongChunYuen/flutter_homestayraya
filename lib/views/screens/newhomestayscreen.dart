@@ -40,6 +40,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
   final _formKey = GlobalKey<FormState>();
   var _lat, _lng;
 
+// load location for the homestay
   @override
   void initState() {
     super.initState();
@@ -51,7 +52,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
   }
 
   File? _image;
-  final List<File> _imageList = [];
+  final List<File> _imageList = []; // Array to store the homestay images
   var pathAsset = "assets/images/camera.png";
   @override
   Widget build(BuildContext context) {
@@ -64,12 +65,10 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
             ),
             Center(
               child: SizedBox(
-                height: 230, // card height
+                height: 230,
                 child: PageView.builder(
                     itemCount: _imageList.length + 1,
                     controller: PageController(viewportFraction: 0.8),
-                    // onPageChanged: (int index) =>
-                    //     setState(() => _index = index),
                     itemBuilder: (BuildContext context, int index) {
                       return Transform.scale(
                         scale: 1,
@@ -232,6 +231,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
         ));
   }
 
+// method to validate the form
   void _newHomestayDialog() {
     if (_imageList.length < 2) {
       Fluttertoast.showToast(
@@ -296,6 +296,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     );
   }
 
+// method to manage images (change or delete images)
   void _manageImageDialog(int num) {
     if (_imageList.length > num) {
       showDialog(
@@ -344,6 +345,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     }
   }
 
+// let user to select where they want to get the image
   void _selectImageDialog(int num) {
     showDialog(
       context: context,
@@ -370,6 +372,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     );
   }
 
+// method open camera
   Future<void> _onCamera(int num) async {
     Navigator.pop(context);
     final picker = ImagePicker();
@@ -386,6 +389,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     }
   }
 
+// method open gallery
   Future<void> _onGallery(int num) async {
     Navigator.pop(context);
     final picker = ImagePicker();
@@ -402,6 +406,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     }
   }
 
+// method to crop image
   Future<void> cropImage(int num) async {
     CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: _image!.path,
@@ -432,6 +437,7 @@ class _NewHomestayScreenState extends State<NewHomestayScreen> {
     }
   }
 
+// method to insert homestay in database
   void _insertHomestay() {
     String hsname = _hsnameEditingController.text;
     String hsdesc = _hsdescEditingController.text;
